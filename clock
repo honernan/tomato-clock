@@ -1,0 +1,52 @@
+#!/bin/bash
+#番茄钟脚本#番茄钟脚本#番茄钟脚本
+
+#默认参数
+declare -i work_time=25			
+declare -i rest_time=5
+declare -i s_work_time=25
+declare -i s_rest_time=30
+declare -i tomato_number=1
+declare -i tim=1		#番茄钟计数
+declare -i flag=0		#日志时间计数
+
+#判断参数
+while [ -n "$1" ]
+do
+	case "$1" in
+		-t) tomato_number=$2    #-t 番茄钟个数
+			shift;;
+		-w) work_time=$2	#-w 工作时间
+			s_work_time=$2
+			shift;;
+		-r) rest_time=$2	#-r 休息时间
+			let s_rest_time=work_time+rest_time
+			#let rest_time=s_rest_time
+			shift;;
+		*) echo "$1 is not an option"
+			exit 1
+	esac
+	shift
+done
+
+let rest_time=s_rest_time
+date +%D>>/root/Documents/log/clock.log
+while [ $tim -le $tomato_number ]
+	do
+		echo "env DISPLAY=:0 feh -ZF /root/Pictures/$tim.jpg"|at now+$work_time minutes
+		echo "Find_PID feh" | at now+$rest_time minutes
+		date +%X --date="+$flag minutes">>/root/Documents/log/clock.log
+		let flag=flag+s_rest_time
+		echo "第$tim番茄钟">>/root/Documents/log/clock.log
+		let work_time=work_time+s_rest_time
+		let rest_time=rest_time+s_rest_time
+		let tim=tim+1
+	done
+ 
+unset work_time
+unset rest_time
+unset s_work_time
+unset s_rest_time
+unset tomato_number
+unset tim
+
