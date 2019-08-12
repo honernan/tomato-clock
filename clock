@@ -9,7 +9,15 @@ declare -i s_rest_time=30
 declare -i tomato_number=1
 declare -i tim=1		#番茄钟计数
 declare -i flag=0		#日志时间计数
+declare filename
+declare -i a_tim=1		#每日番茄钟总计数
+filename=`date +%F`
 
+#日志系统：如还未建立当日记录文件则建立
+if [ ! -e ~/Documents/log/clock/`date +%F`  ]
+then
+	touch  /root/Documents/log/clock/`date +%F`
+fi
 #判断参数
 while [ -n "$1" ]
 do
@@ -30,17 +38,26 @@ do
 done
 
 let rest_time=s_rest_time
-date +%D>>/root/Documents/log/clock.log
+
+#判断文件是否为空，并重置当日番茄钟实际个数
+if [ -s ~/Documents/log/clock/`date +%F` ]
+then
+	filelines=`sed -n '$=' /root/Documents/log/clock/$filename`
+	let a_tim=filelines/2
+	let a_tim=a_tim+1
+fi
+
 while [ $tim -le $tomato_number ]
 	do
 		echo "env DISPLAY=:0 feh -ZF /root/Pictures/$tim.jpg"|at now+$work_time minutes
 		echo "Find_PID feh" | at now+$rest_time minutes
-		date +%X --date="+$flag minutes">>/root/Documents/log/clock.log
+		date +%T --date="+$flag minutes" | cut -d ':' -f 1,2>>/root/Documents/log/clock/`date +%F`
 		let flag=flag+s_rest_time
-		echo "第$tim番茄钟">>/root/Documents/log/clock.log
+		echo "第$a_tim个番茄钟">>/root/Documents/log/clock/`date +%F`
 		let work_time=work_time+s_rest_time
 		let rest_time=rest_time+s_rest_time
 		let tim=tim+1
+		let a_tim=a_tim+1
 	done
  
 unset work_time
